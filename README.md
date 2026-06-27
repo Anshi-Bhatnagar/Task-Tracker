@@ -1,141 +1,291 @@
-# Task Tracker
+# 📌 Task Tracker
 
-A full-stack kanban-style task management app. FastAPI backend, React frontend, PostgreSQL database via SQLAlchemy.
+A production-style full-stack Kanban task management application built with **FastAPI**, **React**, and **PostgreSQL**. The application enables users to securely manage projects and tasks through JWT-based authentication, a RESTful API, and an interactive Kanban board.
 
-![status](https://img.shields.io/badge/status-working-brightgreen)
+![Status](https://img.shields.io/badge/Status-Live-brightgreen)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791)
 
-🔗 **Live demo:** _add your Netlify URL here once deployed_
-🔗 **Repo:** [github.com/Anshi-Bhatnagar/task-tracker](https://github.com/Anshi-Bhatnagar/task-tracker)
+## 🌐 Live Links
 
-> Note: the backend runs on Render's free tier, which spins down after 15 minutes of inactivity. If the demo feels slow on first load, that's the backend waking up — give it ~30-60 seconds.
+* **Live Demo:** https://task-tracker-anshi.netlify.app
+* **Backend API:** https://task-tracker-api-udkr.onrender.com
+* **API Documentation (Swagger):** https://task-tracker-api-udkr.onrender.com/docs
+* **GitHub Repository:** https://github.com/Anshi-Bhatnagar/Task-Tracker
 
-## Features
+> **Note:** The backend is hosted on Render's free tier. After approximately 15 minutes of inactivity, the first request may take **30–60 seconds** while the service wakes up.
 
-- Email/password authentication with JWT, hashed passwords (bcrypt)
-- Create projects, add tasks under them
-- Move tasks across To Do / In Progress / Done
-- Filter tasks by priority
-- REST API with request validation via Pydantic
-- Per-user data isolation (you only ever see your own projects/tasks)
+---
 
-## Stack
+# ✨ Features
 
-| Layer    | Tech |
-|----------|------|
-| Backend  | FastAPI, SQLAlchemy ORM, Pydantic, python-jose (JWT), bcrypt |
-| Database | PostgreSQL |
-| Frontend | React (Vite), plain CSS-in-JS (no framework) |
-| Auth     | OAuth2 password flow + JWT bearer tokens |
+* Secure user authentication using JWT
+* Password hashing with bcrypt
+* Project-based task organization
+* Kanban board with:
 
-## Project structure
+  * To Do
+  * In Progress
+  * Done
+* Task filtering by priority
+* RESTful API built with FastAPI
+* Request validation using Pydantic
+* SQLAlchemy ORM with indexed database queries for efficient task retrieval.
+* PostgreSQL relational database
+* Per-user data isolation
+* Responsive React frontend
+* Fully deployed on Render and Netlify
 
+---
+
+# 🛠 Tech Stack
+
+| Layer           | Technologies                      |
+| --------------- | --------------------------------- |
+| Frontend        | React, Vite                       |
+| Backend         | FastAPI, SQLAlchemy, Pydantic     |
+| Database        | PostgreSQL                        |
+| Authentication  | OAuth2 Password Flow, JWT, bcrypt |
+| Deployment      | Render, Netlify                   |
+| Version Control | Git, GitHub                       |
+
+---
+## 🔄 Workflow
+
+```text
+Register/Login
+      │
+      ▼
+Create Project
+      │
+      ▼
+Create Tasks
+      │
+      ▼
+Move Tasks Across Kanban Board
+      │
+      ▼
+Filter Tasks by Priority
 ```
+
+# 📂 Project Structure
+
+```text
 task-tracker/
+│
 ├── backend/
 │   ├── app/
-│   │   ├── main.py          # FastAPI app, CORS, router registration
-│   │   ├── config.py        # env-based settings
-│   │   ├── database.py      # SQLAlchemy engine/session
-│   │   ├── models.py        # User, Project, Task ORM models
-│   │   ├── schemas.py       # Pydantic request/response schemas
-│   │   ├── auth.py          # password hashing, JWT creation/verification
+│   │   ├── auth.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── schemas.py
 │   │   └── routers/
-│   │       ├── auth.py      # /auth/register, /auth/login, /auth/me
-│   │       ├── projects.py  # /projects CRUD
-│   │       └── tasks.py     # /tasks CRUD + filtering
-│   └── requirements.txt
-└── frontend/
-    └── src/
-        ├── api/client.js         # fetch wrapper, talks to the backend
-        ├── context/AuthContext.jsx
-        ├── pages/AuthPage.jsx    # login / register
-        ├── pages/BoardPage.jsx   # the kanban board
-        └── components/
-            ├── TaskCard.jsx
-            └── NewTaskForm.jsx
+│   │       ├── auth.py
+│   │       ├── projects.py
+│   │       └── tasks.py
+│   │
+│   ├── requirements.txt
+│   └── .env.example
+│
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── package.json
+│   └── .env.example
+│
+├── README.md
+└── .gitignore
 ```
 
-## Data model
+---
+
+# 🗄 Database Design
 
 ```
-users ──┬─< projects >──┬─< tasks
-        │   (owner_id)   │  (project_id, assignee_id)
+Users
+  │
+  └──────< Projects
+              │
+              └──────< Tasks
 ```
 
-- `users.email` and `users.username` are unique
-- `projects.owner_id` → `users.id`, cascade delete (deleting a user removes their projects)
-- `tasks.project_id` → `projects.id`, cascade delete
-- `tasks.assignee_id` → `users.id`, nullable, sets to NULL on user delete
-- Composite index on `(project_id, status)` for the common "tasks in this project, filtered by status" query
-- Separate indexes on `status`, `priority`, `assignee_id` for standalone filters
+### Relationships
 
-## Deployment
+* One User → Many Projects
+* One Project → Many Tasks
+* Optional Task Assignee
+* Cascade deletion for Projects and Tasks
+* Composite index on `(project_id, status)` for faster filtering
 
-This is deployed as two separate services:
+---
 
-- **Frontend** → [Netlify](https://netlify.com) — base directory `frontend`, build command `npm run build`, publish directory `frontend/dist`, env var `VITE_API_URL` set to the backend URL.
-- **Backend + Database** → [Render](https://render.com) — web service with root directory `backend`, build command `pip install -r requirements.txt`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, connected to a Render PostgreSQL instance via the `DATABASE_URL` env var.
+# 🚀 Deployment
 
-After deploying both, set `CORS_ORIGINS` on the backend to the live Netlify URL so the frontend can call the API.
+The application is deployed as two separate services.
 
-## Running it locally
+### Frontend (Netlify)
 
-### Prerequisites
+**Live URL**
 
-- Python 3.11+
-- Node 18+
-- PostgreSQL running locally
+https://task-tracker-anshi.netlify.app
 
-### 1. Database
+Configuration
 
-```bash
-sudo -u postgres psql -c "CREATE USER tasktracker WITH PASSWORD 'your_password';"
-sudo -u postgres psql -c "CREATE DATABASE tasktracker_db OWNER tasktracker;"
-```
+* Base Directory: `frontend`
+* Build Command: `npm run build`
+* Publish Directory: `dist`
+* Environment Variable:
 
-### 2. Backend
+  * `VITE_API_URL`
+
+---
+
+### Backend (Render)
+
+**Live URL**
+
+https://task-tracker-api-udkr.onrender.com
+
+Configuration
+
+* Root Directory: `backend`
+* Build Command:
+  `pip install -r requirements.txt`
+* Start Command:
+  `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+* PostgreSQL database connected using the `DATABASE_URL` environment variable.
+
+The backend is configured with `CORS_ORIGINS` so the deployed frontend can securely access the API.
+
+---
+
+# ⚙ Running Locally
+
+## Prerequisites
+
+* Python 3.11+
+* Node.js 18+
+* PostgreSQL
+
+---
+
+## Backend
 
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
 pip install -r requirements.txt
 
-cp .env.example .env            # then fill in your DB password / secret key
+cp .env.example .env
 
-uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --reload
 ```
 
-Tables are created automatically on startup. API docs at `http://localhost:8000/docs`.
+API Documentation:
 
-### 3. Frontend
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Frontend
 
 ```bash
 cd frontend
+
 npm install
-cp .env.example .env            # defaults to localhost:8000, change if needed
+
+cp .env.example .env
+
 npm run dev
 ```
 
-App runs at `http://localhost:5173`.
+Application:
 
-## API overview
+```
+http://localhost:5173
+```
 
-| Method | Endpoint            | Description                              |
-|--------|----------------------|-------------------------------------------|
-| POST   | `/auth/register`     | Create an account                         |
-| POST   | `/auth/login`         | Get a JWT (OAuth2 password flow)          |
-| GET    | `/auth/me`            | Current user                              |
-| GET    | `/projects`           | List your projects                        |
-| POST   | `/projects`           | Create a project                          |
-| DELETE | `/projects/{id}`      | Delete a project                          |
-| GET    | `/tasks`              | List tasks (filter by `project_id`, `status_filter`, `priority`, `assignee_id`) |
-| POST   | `/tasks`              | Create a task                             |
-| PATCH  | `/tasks/{id}`         | Update a task (partial)                   |
-| DELETE | `/tasks/{id}`         | Delete a task                             |
+---
 
-All endpoints except register/login require `Authorization: Bearer <token>`.
+# 📖 API Endpoints
 
-## Notes
+| Method | Endpoint         | Description    |
+| ------ | ---------------- | -------------- |
+| POST   | `/auth/register` | Register user  |
+| POST   | `/auth/login`    | Login          |
+| GET    | `/auth/me`       | Current user   |
+| GET    | `/projects`      | List projects  |
+| POST   | `/projects`      | Create project |
+| DELETE | `/projects/{id}` | Delete project |
+| GET    | `/tasks`         | List tasks     |
+| POST   | `/tasks`         | Create task    |
+| PATCH  | `/tasks/{id}`    | Update task    |
+| DELETE | `/tasks/{id}`    | Delete task    |
 
-This was built as a focused project to get hands-on with a backend stack (FastAPI + PostgreSQL + SQLAlchemy) end to end — schema design, auth, and a REST API consumed by a real frontend, rather than just following a tutorial.
+All protected endpoints require:
+
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+# 📸 Screenshots
+
+* Login Page
+  <img width="902" height="862" alt="image" src="https://github.com/user-attachments/assets/5f324181-ed17-467e-bd68-2d3156e4dcaa" />
+
+* Register Page
+  <img width="898" height="827" alt="image" src="https://github.com/user-attachments/assets/51402a9f-1071-4c4e-bb56-5d438e8a0ad5" />
+
+* Kanban Board
+
+<img width="1247" height="573" alt="image" src="https://github.com/user-attachments/assets/49cfdf00-876c-415c-9ebb-227a52097311" />
+
+
+* Task Creation
+<img width="355" height="298" alt="image" src="https://github.com/user-attachments/assets/9d0c1926-54c3-4799-9d46-6dfbf7ddd602" />
+
+* Task Filtering
+<img width="293" height="193" alt="image" src="https://github.com/user-attachments/assets/53d0e47b-dec5-470d-b290-6b05c6cb34d1" />
+
+---
+
+# 📚 What I Learned
+
+Through this project I gained practical experience with:
+
+* Designing REST APIs using FastAPI
+* JWT authentication and authorization
+* SQLAlchemy ORM
+* PostgreSQL schema design
+* React state management
+* Frontend–backend integration
+* Environment variable management
+* Deploying production-ready applications using Render and Netlify
+* Debugging deployment issues and configuring CORS
+
+---
+
+# 👩‍💻 Author
+
+**Anshika Bhatnagar**
+
+* GitHub: https://github.com/Anshi-Bhatnagar
+* LinkedIn: https://www.linkedin.com/in/anshika-bhatnagar-136ba7318/
